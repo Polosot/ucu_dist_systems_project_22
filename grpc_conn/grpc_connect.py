@@ -43,8 +43,9 @@ class GrpcReceiver:
     def __init__(self, db, port):
         self.db = db
         self.port = port
+        self.server = None
 
-    async def start(self):
+    async def start(self, *args, **kwargs):
 
         init_grpc_aio()
         self.server = grpc.aio.server()
