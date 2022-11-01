@@ -7,8 +7,9 @@ import asyncio
 
 class GrpcSender:
 
-    def __init__(self, nodes):
+    def __init__(self, nodes, logger):
         self.nodes = nodes
+        self.logger = logger
 
     async def send(self, msg, id, node):
         async with grpc.aio.insecure_channel(node) as channel:
@@ -18,6 +19,8 @@ class GrpcSender:
 
     async def send_to_nodes(self, msg, id):
 
+        self.logger.info('Sending requests to nodes via GRPC')
+
         tasks = asyncio.gather(*[self.send(msg, id, n) for n in self.nodes])
         results = await asyncio.ensure_future(tasks)
 
@@ -26,36 +29,37 @@ class GrpcSender:
 
 class Replicator(message_replicator_pb2_grpc.MessageReplicatorServicer):
 
-    def __init__(self, db):
-
+    def __init__(self, db, logger):
         self.db = db
+        self.logger = logger
 
     async def Replicate(self, request, context):
 
-        print('replicateeeeee')
-
+        self.logger.info('Incoming GRPC request')
         await self.db.append(msg=request.msg, id=request.id)
         return message_replicator_pb2.Ack(success=True)
 
 
 class GrpcReceiver:
 
-    def __init__(self, db, port):
+    def __init__(self, db, logger, port):
         self.db = db
         self.port = port
+        self.logger = logger
         self.server = None
 
     async def start(self, *args, **kwargs):
 
         init_grpc_aio()
         self.server = grpc.aio.server()
-        message_replicator_pb2_grpc.add_MessageReplicatorServicer_to_server(Replicator(self.db), self.server)
+        message_replicator_pb2_grpc.add_MessageReplicatorServicer_to_server(Replicator(self.db, self.logger),
+                                                                            self.server)
         self.server.add_insecure_port('[::]:' + str(self.port))
-        print("Server started, listening on " + str(self.port))
+        self.logger.info("GRPC server started, listening on " + str(self.port))
         await self.server.start()
         await self.server.wait_for_termination()
 
     async def stop(self, *args, **kwargs):
-        print('stoppp')
+        self.logger.info('Stopping GRPC server')
         await self.server.stop(0)
         await self.server.wait_for_termination()

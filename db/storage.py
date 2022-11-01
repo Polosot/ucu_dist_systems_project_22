@@ -12,12 +12,12 @@ class Storage:
         self.logger.info(f'Appending message {msg}, id {id}')
 
         if self.delay:
-            self.logger.info('delay')
+            self.logger.info('Delay...')
             await asyncio.sleep(self.delay)
 
         self.data[id] = msg
-        self.logger.info('message appended')
+        self.logger.info('The message has appended')
 
     def get_messages(self):
-        self.logger.info('get list')
+        self.logger.info('Get message list')
         return [msg for _, msg in sorted(self.data.items(), key=lambda x: x[0])]
