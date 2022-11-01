@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+package message_replicator;
+
+service MessageReplicator {
+  rpc Replicate(Message) returns (Ack);
+}
+
+message Message {
+  required string msg = 1;
+  required uint64 id = 2;
+}
+
+message Ack {
+  required bool success = 1;
+}
