@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import grpc_conn.message_replicator_pb2 as message__replicator__pb2
+from grpc_conn import message_replicator_pb2 as message__replicator__pb2
 
 
 class MessageReplicatorStub(object):
